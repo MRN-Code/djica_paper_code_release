@@ -39,6 +39,13 @@ entry has already been processed with local PCA, and each entry represents a sit
 
 This cell can then be passed into the djica_pipeline.
 
+If you want to compute ISI with Real Data, or custom simulated data, you will need to save your ground truth,
+or pseudo-ground-truth into ground_truth.mat. There are two variables stored here, 'sims', which
+stores ground truth ICxVOXEL spatial maps, and 'times' which stores ground truth TIMExIC timecourses.
+
+For the real data case, you will need to back-reconstruct these yourself. If the proper ground-truth is not
+provided, the pipeline will still run, but ISI will not be computed.
+
 ### Additional Options and Flags
 
 Other than the flags mentioned above, the pipeline has a large number of keywords and variables that can be controlled from the MATLAB pipeline. Type 'help djica_pipeline', orlook at the first section of djica_pipeline.m for more detailed arguments that can be passed to the function.

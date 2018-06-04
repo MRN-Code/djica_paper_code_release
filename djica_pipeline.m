@@ -47,8 +47,8 @@ function varargout = djica_pipeline(datasets, varargin)
  
     %%%% DEFAULT values for keyword usage on command line
     %%% Experiment Info Defaults
-    DEFAULT_subjMat = 512;              % Vector of numbers - must be the same size as siteMat. The program runs through pairs of subject versus site coordinates and records a run for each pair.
-    DEFAULT_siteMat = 64;                % Vector of numbers - must be the same size as subjMat.
+    DEFAULT_subjMat = 16;              % Vector of numbers - must be the same size as siteMat. The program runs through pairs of subject versus site coordinates and records a run for each pair.
+    DEFAULT_siteMat = 2;                % Vector of numbers - must be the same size as subjMat.
     DEFAULT_numRuns = 1;                % Number of times to repeat runs, useful for robustness testing using different simulated data, etc.
     
     %%% ICA and PCA component Defaults

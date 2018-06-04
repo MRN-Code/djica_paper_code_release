@@ -4,18 +4,18 @@ This repository contains the MATLAB code used in the 2018 paper "Decentralized T
 
 ## Running the Pipeline
 
-We have included some sample simulated data with 512 simulated subjects. The pipeline can be run for this data set by running the following
+We have included some sample simulated data with 16 simulated subjects. More data can be generated using the simtb toolbox. The pipeline can be run for this data set by running the following
 
   ```MATLAB
     load datasets
     ISI = djica_pipeline(datasets);
   ```
   
-  which runs 512 subjects simulated over 64 sites. 
+  which runs 16 subjects simulated over 2 sites. 
 
-The pipeline saves results in folders of the format (e.g. for 512 subjects 64 sites 20 ICs):
+The pipeline saves results in folders of the format (e.g. for 16 subjects 2 sites 20 ICs):
 
-  ./results/s512-n64-nc20-r1/
+  ./results/s16-n2-nc20-r1/
   
 The following objects are saved in a full run:
 

@@ -46,6 +46,20 @@ stores ground truth ICxVOXEL spatial maps, and 'times' which stores ground truth
 For the real data case, you will need to back-reconstruct these yourself. If the proper ground-truth is not
 provided, the pipeline will still run, but ISI will not be computed.
 
+### The Subject/Site Distribution
+
+To change the subject-site distribution, you can pass the 'subjMat' and 'siteMat' flags, which will allow you to run different numbers of subjects, evenly split over different numbers of sites. E.g.
+
+  ```MATLAB
+    djica_pipeline(datasets, 'subjMat', [256, 512], 'siteMat', [32, 64]);
+  ```
+
+Will run two different runs, first with 256 subjects over 32 sites, then with 512 subjects over 64 sites. **The datasets variable will need to contain at least 512 subjects for this to work.**
+
+### Repeated Runs
+
+You can run repeated experiments for the subject/site distributions by passing the 'numRuns' flag with the number of repeats you want to do, which will repeat the same distribution, with different subjects situated at different sites.
+
 ### Additional Options and Flags
 
 Other than the flags mentioned above, the pipeline has a large number of keywords and variables that can be controlled from the MATLAB pipeline. Type 'help djica_pipeline', orlook at the first section of djica_pipeline.m for more detailed arguments that can be passed to the function.

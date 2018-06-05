@@ -506,14 +506,14 @@ for i = 1:siteMat(s)
                     	%%% step 4.11 ISI computation
 			ISI = 0;
                     	if flag_isi	
-				try
-					load('ground_truth.mat');
-       		               		 subject_corr = cell(1,length(Shat_));
+				%try
+                                load('ground_truth.mat');
+       		               		subject_corr = cell(1,length(Shat_));
                         		for i = 1:length(Shat_)
-                            			Shat_{i} = Shat_{i}'
-                            			subject_corr{i} = abs(corr(Shat_{i},times{i}'))';
+                                        Shat_{i} = Shat_{i}';
+                            			subject_corr{i} = abs(corr(Shat_{i},times{i}))';
                         		end
-                       			A = apply_mask(sims{1},'mask',mask','demean',0)';
+                       			A = apply_mask(sims{1}','mask',mask','demean',0)';
                         		H = hungarian_algorithm(SMhat',subject_corr{i});
                       			P = H*A';
                      			 % this uses compute_isi.m, see 'help cocompute_isi' for more info
@@ -523,9 +523,9 @@ for i = 1:siteMat(s)
                  		       %%% Saving
                         		save([child_directory '/isi.mat'],'ISI');
                         		save([child_directory '/subject_corr.mat'],'subject_corr');
-				catch E
-					fprintf('EXCEPTION %s\nFAILED TO COMPUTE ISI. Perhaps you are using custom data, or ground_truth.at is not available?\n', E.message);
-				end
+				%catch E
+				%	fprintf('EXCEPTION %s\nFAILED TO COMPUTE ISI. Perhaps you are using custom data, or ground_truth.at is not available?\n', E.message);
+				%end
 			end
 		    end
                     %%% step 4.12 : filling mask

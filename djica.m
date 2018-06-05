@@ -461,11 +461,20 @@ while step < maxsteps, %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             grads{i} = gradSum;
             biases{i} = biasSum;
         end
-        if optimization == 'stochastic'
+        if strcmp(optimization, 'stochastic')
+
             lastt=fix((frames_n./block-1).*block+1); %uses same heuristic as for determining block-size - minimum frame count
             onesrow = ones(1,block);
             BI=block*eye(ncomps,ncomps);
             for t=1:block:lastt,
+                gradSum = zeros(chans_n(1),chans_n(1));
+                biasSum = zeros(ncomps,1);
+                grads = cell(1,length(datasets));
+                biases = cell(1,length(datasets));
+                for i = 1:length(datasets)
+                    grads{i} = gradSum;
+                    biases{i} = biasSum;
+                end
                 parfor i = 1:length(datasets)
                     if biasflag           
                       dat = datasets{i};
@@ -529,7 +538,7 @@ while step < maxsteps, %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             end
         end
       %%%%%%%%%%%%%%%%%%% Aggregation %%posactWeights%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      if optimization ~= 'stochastic'
+      if ~strcmp(optimization, 'stochastic')
           weights = weights + gradSum; % weights is a global variable
           bias =  bias + biasSum; % bias is a global variable
       end

@@ -117,6 +117,7 @@ DEFAULT_SPHEREFLAG   = 'on';      % use the sphere matrix as the default
 DEFAULT_POSACTFLAG   = 'on';      % use posact()
 DEFAULT_VERBOSE      = 1;         % write ascii info to calling screen
 DEFAULT_BIASFLAG     = 1;         % default to using bias in the ICA update rule
+DEFAULT_OPTIMIZATION = 'stochastic';
 %                                 
 %%%%%%%%%%%%%%%%%%%%%%% Set up keyword default values %%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -140,6 +141,7 @@ biasflag   = DEFAULT_BIASFLAG;
 
 wts_blowup = 0;                      % flag =1 when weights too large
 wts_passed = 0;                      % flag weights passed as argument
+optimization = DEFAULT_OPTIMIZATION;
 %
 %% Collect keywords and values from argument list %%%%%%%%%%%%%%%
 %
@@ -459,43 +461,78 @@ while step < maxsteps, %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             grads{i} = gradSum;
             biases{i} = biasSum;
         end
-        
-        parfor i = 1:length(datasets) % for each local dataset
-            tic
+        if optimization == 'stochastic'
+            lastt=fix((frames_n./block-1).*block+1); %uses same heuristic as for determining block-size - minimum frame count
             onesrow = ones(1,block);
             BI=block*eye(ncomps,ncomps);
-            lastt=fix((frames_n(i)/block-1)*block+1); %uses same heuristic as for determining block-size - minimum frame count
             for t=1:block:lastt,
-                if biasflag           
-                  dat = datasets{i};
-                  u=weights*dat(:,permute_n{i}(t:t+block-1)) + bias*onesrow;
-                else                                                             
-                  u=weights*dat(:,permute_n{i}(t:t+block-1));
-                end                                                              
+                parfor i = 1:length(datasets)
+                    if biasflag           
+                      dat = datasets{i};
+                      u=weights*dat(:,permute_n{i}(t:t+block-1)) + bias*onesrow;
+                    else                                                             
+                      u=weights*dat(:,permute_n{i}(t:t+block-1));
+                    end                                                              
 
-                  %%%%%%%%%%%%%%%%%%% Logistic ICA weight update %%%%%%%%%%%%%%%%%%%
-                  y=1./(1+exp(-u));                                                %
-                  grad=  lrate*(BI+(1-2*y)*u')*weights;                   %        
-                  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                      %%%%%%%%%%%%%%%%%%% Logistic ICA weight update %%%%%%%%%%%%%%%%%%%
+                      y=1./(1+exp(-u));                                                %
+                      grad=  lrate*(BI+(1-2*y)*u')*weights;                   %        
+                      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-               if biasflag 
-                     %%%%%%%%%%%%%%%%%%%%%%%% Logistic ICA bias %%%%%%%%%%%%%%%%%%%%%%%
-                     bias_grad = lrate*sum((1-2*y)')'; % for logistic nonlin. %      
-                     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%                              
-               end
-               grads{i} = grads{i} + grad;
-               biases{i} = biases{i} + bias_grad;
+                   if biasflag 
+                         %%%%%%%%%%%%%%%%%%%%%%%% Logistic ICA bias %%%%%%%%%%%%%%%%%%%%%%%
+                         bias_grad = lrate*sum((1-2*y)')'; % for logistic nonlin. %      
+                         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%                              
+                   end
+                   grads{i} = grads{i} + grad;
+                   biases{i} = biases{i} + bias_grad;
+                end
+                for i = 1:length(datasets)
+                    gradSum = gradSum + grads{i};
+                    biasSum = biasSum + biases{i};
+                end
+                weights = weights + gradSum; % weights is a global variable
+                bias =  bias + biasSum; % bias is a global variable
             end
-            runtimes_n(i) = runtimes_n(i) + toc;
-        end
-        for i = 1:length(datasets)
-          gradSum = gradSum + grads{i};
-          biasSum = biasSum + biases{i};
+        else
+            parfor i = 1:length(datasets) % for each local dataset
+                tic
+                onesrow = ones(1,block);
+                BI=block*eye(ncomps,ncomps);
+                lastt=fix((frames_n(i)/block-1)*block+1); %uses same heuristic as for determining block-size - minimum frame count
+                for t=1:block:lastt,
+                    if biasflag           
+                      dat = datasets{i};
+                      u=weights*dat(:,permute_n{i}(t:t+block-1)) + bias*onesrow;
+                    else                                                             
+                      u=weights*dat(:,permute_n{i}(t:t+block-1));
+                    end                                                              
+
+                      %%%%%%%%%%%%%%%%%%% Logistic ICA weight update %%%%%%%%%%%%%%%%%%%
+                      y=1./(1+exp(-u));                                                %
+                      grad=  lrate*(BI+(1-2*y)*u')*weights;                   %        
+                      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+                   if biasflag 
+                         %%%%%%%%%%%%%%%%%%%%%%%% Logistic ICA bias %%%%%%%%%%%%%%%%%%%%%%%
+                         bias_grad = lrate*sum((1-2*y)')'; % for logistic nonlin. %      
+                         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%                              
+                   end
+                   grads{i} = grads{i} + grad;
+                   biases{i} = biases{i} + bias_grad;
+                end
+                runtimes_n(i) = runtimes_n(i) + toc;
+            end
+            for i = 1:length(datasets)
+              gradSum = gradSum + grads{i};
+              biasSum = biasSum + biases{i};
+            end
         end
       %%%%%%%%%%%%%%%%%%% Aggregation %%posactWeights%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      
-      weights = weights + gradSum; % weights is a global variable
-      bias =  bias + biasSum; % bias is a global variable
+      if optimization ~= 'stochastic'
+          weights = weights + gradSum; % weights is a global variable
+          bias =  bias + biasSum; % bias is a global variable
+      end
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       
       if max(max(abs(weights)))> MAX_WEIGHT

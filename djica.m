@@ -462,8 +462,7 @@ while step < maxsteps, %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             biases{i} = biasSum;
         end
         if strcmp(optimization, 'stochastic')
-
-            lastt=fix((frames_n./block-1).*block+1); %uses same heuristic as for determining block-size - minimum frame count
+            lastt=fix((min(frames_n)/block-1)*block+1); %uses same heuristic as for determining block-size - minimum frame count
             onesrow = ones(1,block);
             BI=block*eye(ncomps,ncomps);
             for t=1:block:lastt,

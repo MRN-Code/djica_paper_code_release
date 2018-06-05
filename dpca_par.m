@@ -1,11 +1,11 @@
-function W = myGlobalPCA_P(localVectors,comp_number)
+function W = dpca_par(localVectors,comp_number)
 numSites=length(localVectors);
 clusterSize=2;
 numCluster=floor(numSites/clusterSize);
 fprintf('Number of Sites Remaining %i, Size of Clusters %i, Number of Clusters %i\n', numSites, clusterSize, numCluster);
 clusterW = cell(1,numCluster);
 if numCluster > 1
-    jump = brad_compute_jump(numCluster, 256, 2);
+    jump = compute_jump(numCluster, 256, 2);
     for ii = 1:jump:numCluster
         parfor cluster = ii:min(ii+(jump-1), numCluster);
             serialVect = localVectors;
@@ -15,10 +15,10 @@ if numCluster > 1
                 endSite = numSites;
             end
             lV=serialVect(beginningSite:endSite);
-            clusterW{cluster} = myGlobalPCA_P(lV, comp_number);
+            clusterW{cluster} = dpca_par(lV, comp_number);
         end
     end
-    W = myGlobalPCA_P(clusterW, comp_number);
+    W = dpca_par(clusterW, comp_number);
 else
 X = localVectors{1}; % assuming voxel x time matrix here
 colsX = size(X,2);

@@ -28,7 +28,7 @@ function [mask,subjmasks,counts] = compute_mask...
     %% command-line variables
     flag_transpose = 1;
     maskType = 'mean';
-    flag_dim = 'col'; % reduce in the column dimension
+    flag_dim = 'row'; % reduce in the column dimension
     
     %% argument processing 
     [keys,vals,datasets] = process_args(varargin,1);
@@ -57,7 +57,7 @@ function [mask,subjmasks,counts] = compute_mask...
     %% Post - Processing  
     [m n] = cellfun(@size,datasets);
     n = min(n);
-    m = min(n);
+    m = min(m);
     rdim = 1;
     if strcmp(flag_dim,'col')
         rdim = 2;
@@ -106,7 +106,11 @@ function [mask,subjmasks,counts] = compute_mask...
             mask = mask.*mask_n;
         end
     elseif strcmp(maskType,'circ')
-        nV = sqrt(max(n));
+        d = n;
+        if strcmp(flag_dim, 'row')
+            d = m;
+        end
+        nV = sqrt(max(d));
         arg1 = linspace(-1,1,nV);
         [x,y] = meshgrid(arg1,arg1);
         r = sqrt(x.^2 + y.^2);
